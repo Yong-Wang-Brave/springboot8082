@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 public class FeignConfig implements RequestInterceptor {
     @Override
     public void apply(RequestTemplate requestTemplate) {
+
      ServletRequestAttributes attributes =   (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
      if( attributes !=null){
          String reqId = attributes.getRequest().getHeader(Constants.REQUEST_ID);
