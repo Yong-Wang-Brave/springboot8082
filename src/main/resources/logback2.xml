@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--        scan="true"：
+        这个属性指示是否启用 Logback 的自动扫描功能。当设置为 true 时，Logback 将会自动扫描配置文件，以检测配置文件的更改，从而实现热加载日志配置的能力。如果你在应用程序运行时修改了 logback-spring.xml 文件，Logback 将自动重新加载配置，无需重启应用程序。
+
+        scanPeriod="60 seconds"：
+        这个属性指定 Logback 自动扫描的时间间隔。在本例中，设置为每隔60秒进行一次自动扫描。Logback 将定期检查配置文件的更改，以便及时应用新的配置。
+
+        debug="false"：
+        这个属性用于控制 Logback 的调试模式。当设置为 true 时，Logback 将输出更详细的日志信息，以帮助调试和故障排除。在本例中，设置为 false，表示不启用调试模式，只输出基本的日志信息。-->
+<configuration  scan="true" scanPeriod="5 seconds" debug="false">
+    <contextName>logback</contextName>
+
+<!--
+    弄清楚每个字母的意思
+-->
+    <property name="pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{50}]-[%X{reqId}]%msg%n"/>
+
+    <appender  name="console"  class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>${pattern}</Pattern>
+        </layout>
+    </appender>
+
+<!--
+    info日志
+-->
+<appender name="file-info" class="ch.qos.logback.core.rolling.RollingFileAppender">
+<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+    <level>INFO</level>
+</filter>
+ <!--
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+    <level>INFO</level>
+    <onMatch>ACCEPT</onMatch>
+    <onMismatch>DENY</onMismatch>
+    </filter>-->
+
+<!--    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <fileNamePattern>logs/info.%d{yyyy-MM-dd}.log</fileNamePattern>
+      &lt;!&ndash;  最近90天&ndash;&gt;
+        <maxHistory>90</maxHistory>
+     &lt;!&ndash;   最多存储3GB&ndash;&gt;
+        <totalSizeCap>3GB</totalSizeCap>
+    </rollingPolicy>-->
+
+<!--新增文件大小 和压缩模式-->
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+        <!-- 每个日志文件的最大大小 -->
+        <maxFileSize>5KB</maxFileSize>
+        <!-- 设置文件名模式 -->
+        <fileNamePattern>${LOGS}/archived/spring-boot-logger-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+        <!-- 设置最大历史记录为30天 -->
+        <maxHistory>30</maxHistory>
+        <!-- 总大小限制 -->
+        <totalSizeCap>100KB</totalSizeCap>
+    </rollingPolicy>
+
+
+
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+        <pattern>${pattern}</pattern>
+        <charset>UTF-8</charset>
+    </encoder>
+</appender>
+
+
+    <!--
+ WARN日志
+-->
+    <appender name="file-warn" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--
+        过滤器，只打印INFO级别的日志
+        -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/warn.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+
+
+
+    <!--
+    info日志
+-->
+    <appender name="file-error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+<!--
+过滤器，只打印INFO级别的日志
+-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${pattern}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+
+<!--
+    异步
+-->
+    <appender name ="ASYNC_INFO" class="ch.qos.logback.classic.AsyncAppender">
+<!--
+        不丢失日志，默认的，如果队列的80%已满，则会丢弃TRACE,DEBUG,INFO级别的日志
+-->
+        <discardingThreshold>0</discardingThreshold>
+<!--
+        更改默认的队列的深度，该值会影响性能，默认值为256
+-->
+        <queueSize>512</queueSize>
+<!--
+        asyncappender为提高性能，默认关闭打印行号
+
+        <includeCallerData>false</includeCallerData>-->
+<!--
+        添加附加的appender,最多只能添加一个
+-->
+        <appender-ref ref="file-info"/>
+    </appender>
+
+    <!--
+        异步
+    -->
+    <appender name ="ASYNC_WARN" class="ch.qos.logback.classic.AsyncAppender">
+        <!--
+                不丢失日志，默认的，如果队列的80%已满，则会丢弃TRACE,DEBUG,INFO级别的日志
+        -->
+        <discardingThreshold>0</discardingThreshold>
+        <!--
+                更改默认的队列的深度，该值会影响性能，默认值为256
+        -->
+        <queueSize>512</queueSize>
+        <!--
+                asyncappender为提高性能，默认关闭打印行号
+
+                <includeCallerData>false</includeCallerData>-->
+        <!--
+                添加附加的appender,最多只能添加一个
+        -->
+        <appender-ref ref="file-warn"/>
+    </appender>
+
+
+
+    <appender name ="ASYNC_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <!--
+                不丢失日志，默认的，如果队列的80%已满，则会丢弃TRACE,DEBUG,INFO级别的日志
+        -->
+        <discardingThreshold>0</discardingThreshold>
+        <!--
+                更改默认的队列的深度，该值会影响性能，默认值为256
+        -->
+        <queueSize>512</queueSize>
+        <!--
+                asyncappender为提高性能，默认关闭打印行号
+
+                <includeCallerData>false</includeCallerData>-->
+        <!--
+                添加附加的appender,最多只能添加一个
+        -->
+        <appender-ref ref="file-error"/>
+    </appender>
+        <root level="INFO">   <!-- 声明日志级别，这里声明将作用于所有记录器-->
+            <appender-ref ref="console"/>  <!-- 声明附加器引用-->
+            <appender-ref ref="ASYNC_INFO"/>
+            <appender-ref ref="ASYNC_WARN"/>
+            <appender-ref ref="ASYNC_ERROR"/>
+
+        </root>
+</configuration>
